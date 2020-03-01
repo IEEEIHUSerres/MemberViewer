@@ -135,7 +135,7 @@ function buildMemberHTML(member) {
     const school = member.school;
 
     return `<div class="member text-center col-12 col-sm-6 col-md-4 col-lg-2">
-                <div style="margin: 20px">
+                <div>
                     <div class="member-avatar">
                         <img src="${avatar}" alt="IEEE Member" class="img-responsive rounded-circle"/>
                     </div>
