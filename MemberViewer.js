@@ -22,6 +22,14 @@ function toBoolean(valueToCheck) {
     return valueToCheck === "1";
 }
 
+function isActiveMember(member) {
+    if(member.status === "Active") {
+        return true;
+    }
+
+    return member.status === "Applicant";
+}
+
 function parseMembers(csvRawFile, defaultAvatar, allowAvatarGlobal) {
     const rows = csvRawFile.split('\n');
 
@@ -39,12 +47,10 @@ function parseMembers(csvRawFile, defaultAvatar, allowAvatarGlobal) {
 
     const unfilteredMembers = finalRows.map(value => parseMember(value, defaultAvatar, allowAvatarGlobal));
 
-    const activeMembers = unfilteredMembers.filter(value => !(value.status === "Inactive"));
-    const formerMembers = unfilteredMembers.filter(value => (value.status === "Inactive"));
+    const activeMembers = unfilteredMembers.filter(member => isActiveMember(member));
+    const formerMembers = unfilteredMembers.filter(member => !(isActiveMember(member)));
 
-    const filteredMembers = activeMembers.concat(formerMembers);
-
-    return filteredMembers;
+    return activeMembers.concat(formerMembers);
 }
 
 function parseName(name) {
@@ -91,11 +97,11 @@ function parseMember(member, defaultAvatar, allowAvatarGlobal) {
 
     return {
         name: {
-            namePrefix: parseName(memberArrayData[7]),
+            namePrefix: parseName(memberArrayData[6]),
             firstName: parseName(memberArrayData[1]),
             middleName: parseName(memberArrayData[5]),
             lastName: parseName(memberArrayData[4]),
-            nameSuffix: parseName(memberArrayData[6]),
+            nameSuffix: parseName(memberArrayData[7]),
         },
         eMail: parseMail(memberArrayData[0]),
         region: parseRegion(memberArrayData[9]),
@@ -130,13 +136,14 @@ function buildMemberHTML(member) {
 
     const avatar = member.avatar;
 
+    const status = isActiveMember(member) ? "Current Member" : "Former Member";
+
     const region = member.region;
     const section = member.section;
     const school = member.school;
 
-    return `<div class="member text-center col-12 col-sm-6 col-md-4 col-lg-2">
-                <div>
-                    <div class="member-avatar">
+    return `<div class="member text-center col-12 col-sm-6 col-md-3">
+                <div class="member-avatar">
                         <img src="${avatar}" alt="IEEE Member" class="img-responsive rounded-circle"/>
                     </div>
                     <div class="member-info">
@@ -145,20 +152,38 @@ function buildMemberHTML(member) {
                                ${name}
                             </div>
                         </div>
+                        <div>
+                            <span class="member-status">
+                                ${status}
+                            </span>
+                        </div>
                         <div class="member-position">
-                            <div class="member-region">
-                                ${region}
-                            </div>
-                            <div class="member-section">
-                                ${section}
+                            <div class="member-region-section">
+                                <span>${region}</span>
+                                <span> | </span>
+                                <span>${section}</span>
                             </div>
                         </div>
                         <div class="member-university">
                             ${school}
                         </div>
                     </div>
-                </div>
             </div>`;
+}
+
+function renderMembers(members) {
+    const rowStart = "<div class='row'>";
+    const rowEnd = "</div>";
+
+    let cols = "";
+
+    members.forEach(member => {
+        cols += buildMemberHTML(member);
+    });
+
+    document.getElementById("membersPlaceHolder").innerHTML = rowStart + cols + rowEnd;
+
+    return members;
 }
 
 function renderMemberViewer(config) {
@@ -180,10 +205,9 @@ function renderMemberViewer(config) {
 
     xhr.onload = function () {
         if (xhr.status === 200) {
-            parseMembers(xhr.responseText, config.defaultAvatar, config.allowAvatarGlobal)
-                .forEach((member) => {
-                    document.getElementById("membersPlaceHolder").innerHTML += buildMemberHTML(member);
-                });
+            const members = parseMembers(xhr.responseText, config.defaultAvatar, config.allowAvatarGlobal);
+
+            renderMembers(members);
         } else {
             alert('Request failed.  Returned status of ' + xhr.status);
         }
