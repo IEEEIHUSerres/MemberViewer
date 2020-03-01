@@ -137,7 +137,7 @@ function buildMemberHTML(member) {
     return `<div class="member text-center col-12 col-sm-6 col-md-4 col-lg-2">
                 <div style="margin: 20px">
                     <div class="member-avatar">
-                        <img src="${avatar}" alt="IEEE Member" class="img-responsive rounded-circle" style="width: 64px"/>
+                        <img src="${avatar}" alt="IEEE Member" class="img-responsive rounded-circle"/>
                     </div>
                     <div class="member-info">
                         <div class="member-name">
