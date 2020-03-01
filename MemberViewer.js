@@ -2,9 +2,53 @@
 
 const GRAVATAR_URL = "https://www.gravatar.com/avatar/";
 
+const Grades = {
+    STUDENT_MEMBER: "Student Member",
+    GRADUATE_STUDENT_MEMBER: "Graduate Student Member"
+};
+
+const AvatarColors = {
+    STUDENT_MEMBER: {
+        BG: "000050",
+        FONT: "FFFFFF"
+    },
+    GRADUATE_STUDENT_MEMBER: {
+        BG: "000050",
+        FONT: "FFFFFF"
+    },
+    DEFAULT: {
+        BG: "000050",
+        FONT: "FFFFFF"
+    }
+};
+
+const MemberStatus = {
+    ACTIVE: "Active",
+    APPLICANT: "Applicant",
+    ARREARS: "Arrears",
+    INACTIVE: "Inactive"
+};
+
+function getAvatarColor(grade) {
+    if(grade === Grades.STUDENT_MEMBER) {
+        return AvatarColors.STUDENT_MEMBER;
+    }
+
+    if(grade === Grades.GRADUATE_STUDENT_MEMBER) {
+        return AvatarColors.GRADUATE_STUDENT_MEMBER;
+    }
+
+    return AvatarColors.DEFAULT;
+}
+
+function getDefaultAvatar(name, grade) {
+    const colors = getAvatarColor(grade);
+
+    return `https://eu.ui-avatars.com/api/?background=${colors.BG}&color=${colors.FONT}&name=${name}&size=128`;
+}
+
 function getConfig() {
     return {
-        defaultAvatar: "https://edu.ieee.org/gr-ihu-serres/wp-content/uploads/sites/92/ieee-ihu-serres-logo.png",
         defaultFile: "./Members.csv",
         allowAvatarGlobal: "0"
     }
@@ -23,14 +67,14 @@ function toBoolean(valueToCheck) {
 }
 
 function isActiveMember(member) {
-    if(member.status === "Active") {
+    if(member.status === MemberStatus.ACTIVE) {
         return true;
     }
 
-    return member.status === "Applicant";
+    return member.status === MemberStatus.APPLICANT;
 }
 
-function parseMembers(csvRawFile, defaultAvatar, allowAvatarGlobal) {
+function parseMembers(csvRawFile, allowAvatarGlobal) {
     const rows = csvRawFile.split('\n');
 
     // Remove the first row, contains the headers
@@ -45,7 +89,7 @@ function parseMembers(csvRawFile, defaultAvatar, allowAvatarGlobal) {
     // Reverse list, as original
     const finalRows = reversedRows.reverse();
 
-    const unfilteredMembers = finalRows.map(value => parseMember(value, defaultAvatar, allowAvatarGlobal));
+    const unfilteredMembers = finalRows.map(value => parseMember(value, allowAvatarGlobal));
 
     const activeMembers = unfilteredMembers.filter(member => isActiveMember(member));
     const formerMembers = unfilteredMembers.filter(member => !(isActiveMember(member)));
@@ -80,13 +124,13 @@ function parseMail(email) {
     return email;
 }
 
-function getAvatar(allowAvatarGlobal, allowAvatarUser, eMailHash, defaultAvatar) {
+function getAvatar(allowAvatarGlobal, allowAvatarUser, eMailHash, fullName, grade) {
     if (!(allowAvatarGlobal)) {
-        return defaultAvatar;
+        return getDefaultAvatar(fullName, grade);
     }
 
     if (!(allowAvatarUser)) {
-        return defaultAvatar;
+        return getDefaultAvatar(fullName, grade);
     }
 
     return getGravatar(eMailHash);
@@ -113,7 +157,9 @@ function parseMember(member, defaultAvatar, allowAvatarGlobal) {
             toBoolean(allowAvatarGlobal),
             toBoolean(memberArrayData[11]),
             memberArrayData[0],
-            defaultAvatar)
+            parseName(memberArrayData[1]) + "+" + parseName(memberArrayData[4]),
+            memberArrayData[2]
+        )
     };
 }
 
@@ -191,10 +237,6 @@ function renderMemberViewer(config) {
         config = getConfig();
     }
 
-    if (typeof config.defaultAvatar === "undefined") {
-        config.defaultAvatar = getConfig().defaultAvatar
-    }
-
     if (typeof config.defaultFile === "undefined") {
         config.defaultFile = getConfig().defaultFile
     }
@@ -205,7 +247,7 @@ function renderMemberViewer(config) {
 
     xhr.onload = function () {
         if (xhr.status === 200) {
-            const members = parseMembers(xhr.responseText, config.defaultAvatar, config.allowAvatarGlobal);
+            const members = parseMembers(xhr.responseText, config.allowAvatarGlobal);
 
             renderMembers(members);
         } else {
