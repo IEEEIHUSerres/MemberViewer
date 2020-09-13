@@ -30,11 +30,11 @@ const MemberStatus = {
 };
 
 function getAvatarColor(grade) {
-    if(grade === Grades.STUDENT_MEMBER) {
+    if (grade === Grades.STUDENT_MEMBER) {
         return AvatarColors.STUDENT_MEMBER;
     }
 
-    if(grade === Grades.GRADUATE_STUDENT_MEMBER) {
+    if (grade === Grades.GRADUATE_STUDENT_MEMBER) {
         return AvatarColors.GRADUATE_STUDENT_MEMBER;
     }
 
@@ -50,7 +50,7 @@ function getDefaultAvatar(name, grade) {
 function getConfig() {
     return {
         defaultFile: "./Members.csv",
-        allowAvatarGlobal: "0"
+        allowAvatarGlobal: '0'
     }
 }
 
@@ -67,7 +67,7 @@ function toBoolean(valueToCheck) {
 }
 
 function isActiveMember(member) {
-    if(member.status === MemberStatus.ACTIVE) {
+    if (member.status === MemberStatus.ACTIVE) {
         return true;
     }
 
@@ -136,7 +136,7 @@ function getAvatar(allowAvatarGlobal, allowAvatarUser, eMailHash, fullName, grad
     return getGravatar(eMailHash);
 }
 
-function parseMember(member, defaultAvatar, allowAvatarGlobal) {
+function parseMember(member, allowAvatarGlobal) {
     const memberArrayData = member.split(';');
 
     return {
@@ -148,9 +148,9 @@ function parseMember(member, defaultAvatar, allowAvatarGlobal) {
             nameSuffix: parseName(memberArrayData[7]),
         },
         eMail: parseMail(memberArrayData[0]),
-        region: parseRegion(memberArrayData[9]),
-        section: memberArrayData[10],
-        school: memberArrayData[8],
+        region: parseRegion(memberArrayData[8]),
+        section: memberArrayData[9],
+        school: memberArrayData[10],
         grade: memberArrayData[2],
         status: memberArrayData[3],
         avatar: getAvatar(
@@ -234,6 +234,7 @@ function renderMembers(members) {
 
 function renderMemberViewer(config) {
     if (typeof config === "undefined") {
+        console.table("config is undefined")
         config = getConfig();
     }
 
